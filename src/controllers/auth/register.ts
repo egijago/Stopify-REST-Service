@@ -37,19 +37,21 @@ export const register = async (req:Request, res:Response) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         console.log(hashedPassword);
-        const createUser = prisma.artist.create({
-          data: {
-            email : email,
-            password : hashedPassword,
-            cardnumber : cardNumber,
-            cardname : cardName,
-            cardexpmonth : cardExpMonth,
-            cardexpyear : cardExpYear,
-            cardcvc : cardcvc,
-          },
-        })
-        console.log(createUser);
-        res.status(400).send({ "message":"sukses" });
+        const createUser = await prisma.artist.create({
+            data: {
+              email: email,
+              password: hashedPassword,
+              cardnumber: cardNumber,
+              cardname: cardName,
+              cardexpmonth: cardExpMonth,
+              cardexpyear: cardExpYear,
+              cardcvc: cardcvc,
+            },
+          });
+          console.log(createUser);
+          
+          const users = await prisma.artist.findMany();
+          res.status(200).send({ users });          
       } catch (error) {
         console.error(error);
         res.status(500).send({ error: 'Internal Server Error' });
