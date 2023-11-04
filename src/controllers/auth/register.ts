@@ -5,6 +5,7 @@ import { Request,Response } from 'express';
 export const register = async (req:Request, res:Response) => {
     const {
         email,
+        name,
         password,
         confPassword,
         cardNumber,
@@ -17,6 +18,7 @@ export const register = async (req:Request, res:Response) => {
     
       if (
         !email ||
+        !name ||
         !password ||
         !confPassword || 
         !cardNumber ||
@@ -28,7 +30,6 @@ export const register = async (req:Request, res:Response) => {
         return res.status(400).send({ error: 'Please fill all the fields' });
       }
     
-      // Check if password and confirmed password match
       if (password !== confPassword) {
         return res.status(400).send({ error: 'Passwords do not match' });
       }
@@ -46,12 +47,12 @@ export const register = async (req:Request, res:Response) => {
               cardexpmonth: cardExpMonth,
               cardexpyear: cardExpYear,
               cardcvc: cardcvc,
+              name: name,
             },
           });
           console.log(createUser);
           
-          const users = await prisma.artist.findMany();
-          res.status(200).send({ users });          
+          res.status(200).send({ message: 'User created successfully' });          
       } catch (error) {
         console.error(error);
         res.status(500).send({ error: 'Internal Server Error' });
