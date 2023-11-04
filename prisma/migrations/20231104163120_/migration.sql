@@ -6,27 +6,25 @@ CREATE TABLE "Artist" (
     "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "cardnumber" TEXT,
-    "cardname" TEXT,
-    "cardexpmonth" TEXT,
-    "cardexpyear" TEXT,
-    "cardcvc" TEXT,
 
     CONSTRAINT "Artist_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ListenTo" (
-    "idUser" INTEGER NOT NULL,
+    "titleMusic" TEXT,
+    "titleAlbum" TEXT,
     "idArtist" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "ListenTo_pkey" PRIMARY KEY ("idUser","idArtist")
+    CONSTRAINT "ListenTo_pkey" PRIMARY KEY ("idArtist")
 );
 
 -- CreateTable
 CREATE TABLE "LikeTo" (
     "idUser" INTEGER NOT NULL,
+    "titleMusic" TEXT,
+    "titleAlbum" TEXT,
     "idArtist" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
