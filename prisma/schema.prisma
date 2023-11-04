@@ -14,11 +14,6 @@ model Artist {
   password     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  cardnumber   String?
-  cardname     String?
-  cardexpmonth String?
-  cardexpyear  String?
-  cardcvc      String?
   listenTo     ListenTo[]
   likeTo       LikeTo[]
   poster       Poster[]
@@ -26,16 +21,19 @@ model Artist {
 
 
 model ListenTo {
-  idUser   Int
+  titleMusic String?
+  titleAlbum String?
   artist   Artist   @relation(fields: [idArtist], references: [id])
   idArtist Int
   date     DateTime @default(now())
 
-  @@id([idUser, idArtist])
+  @@id([idArtist])
 }
 
 model LikeTo {
   idUser   Int
+  titleMusic String?
+  titleAlbum String?
   artist   Artist   @relation(fields: [idArtist], references: [id])
   idArtist Int
   date     DateTime @default(now())
