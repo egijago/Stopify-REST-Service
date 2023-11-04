@@ -7,12 +7,7 @@ export const register = async (req:Request, res:Response) => {
         email,
         name,
         password,
-        confPassword,
-        cardNumber,
-        cardName,
-        cardExpMonth,
-        cardExpYear,
-        cardcvc,
+        confPassword
       } = req.body;
       console.log(req.body)
     
@@ -20,12 +15,7 @@ export const register = async (req:Request, res:Response) => {
         !email ||
         !name ||
         !password ||
-        !confPassword || 
-        !cardNumber ||
-        !cardName ||
-        !cardExpMonth ||
-        !cardExpYear ||
-        !cardcvc
+        !confPassword
       ) {
         return res.status(400).send({ error: 'Please fill all the fields' });
       }
@@ -42,11 +32,6 @@ export const register = async (req:Request, res:Response) => {
             data: {
               email: email,
               password: hashedPassword,
-              cardnumber: cardNumber,
-              cardname: cardName,
-              cardexpmonth: cardExpMonth,
-              cardexpyear: cardExpYear,
-              cardcvc: cardcvc,
               name: name,
             },
           });

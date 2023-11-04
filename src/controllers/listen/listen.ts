@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '../../utils/db.server';
 export const listenTo = async (req:Request, res:Response) => {
-    const {idUser, idArtist} = req.body;
+    const {idArtist,titleMusic,titleAlbum} = req.body;
+    if(!idArtist || !titleMusic || !titleAlbum){
+        return res.status(400).send({ error: 'Please fill all the fields' });
+    }
     const api_key = req.headers.authorization;
     if (!api_key || api_key !== process.env.REST_API_KEY) {
         return res.status(400).send({ error: 'Unauthorized' });
@@ -9,8 +12,9 @@ export const listenTo = async (req:Request, res:Response) => {
     try {
         const like = await prisma.listenTo.create({
             data: {
-                idUser: idUser,
                 idArtist: idArtist,
+                titleAlbum: titleAlbum,
+                titleMusic: titleMusic
             }
         });
         console.log(like)
