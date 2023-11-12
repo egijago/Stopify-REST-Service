@@ -4,12 +4,14 @@ import jwt from 'jsonwebtoken';
 import { Request,Response } from 'express';
 
 export const login = async (req:Request, res:Response) => {
+  
     const {email,password} = req.body;
     const artist = await prisma.artist.findUnique({
       where: {
         email: email,
       }
     });
+    
     if (!artist) {
       return res.status(400).send({ error: 'Invalid Credentials' });
     }
