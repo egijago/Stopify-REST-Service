@@ -8,37 +8,38 @@ datasource db {
 }
 
 model Artist {
-  id        Int        @id @unique
-  email     String     @unique
-  name      String?
-  password  String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  name     String
+  password String
+
+  active    Boolean?   @default(true)
+  createdAt DateTime?  @default(now())
+  updatedAt DateTime?  @updatedAt
   listenTo  ListenTo[]
   likeTo    LikeTo[]
   banner    Banner[]
-  active    Boolean    @default(true)
 }
 
 model ListenTo {
-  id       Int      @unique @default(autoincrement())
+  id       Int @id @default(autoincrement())
   idUser   Int
-  artist   Artist   @relation(fields: [idArtist], references: [id], onDelete: Cascade , onUpdate:  Cascade)
   idArtist Int
   idMusic  Int
   idAlbum  Int
-  listenAt DateTime @default(now())
 
-  @@id([idArtist])
+  artist   Artist    @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  listenAt DateTime? @default(now())
 }
 
 model LikeTo {
-  id       Int    @id @default(autoincrement())
+  id       Int @id @default(autoincrement())
   idUser   Int
   idMusic  Int
   idAlbum  Int
-  artist   Artist @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
   idArtist Int
+
+  artist Artist @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([idUser, idMusic])
 }
@@ -49,9 +50,9 @@ model Banner {
   description String
   startDate   DateTime @default(now())
   endDate     DateTime
+  idArtist    Int
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Artist    Artist   @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  idArtist  Int
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  Artist    Artist    @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
