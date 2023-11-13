@@ -40,6 +40,7 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, name, password, confPassword } = req.body
     if (!email || !name || !password || !confPassword) {
+      console.log(email," + ", name, password, confPassword)
       throw new BadRequestError("Please fill all the field!")
     }
 
@@ -64,6 +65,7 @@ export const register = async (req: Request, res: Response) => {
         .status(error.statusCode)
         .send({ success: false, message: error.message })
     } else {
+      console.log(error)
       res.status(500).send({ success: false, message: "Internal Server Error" })
     }
   }
