@@ -1,33 +1,34 @@
 import { IValidateLogin, createArtist } from "./../services/artist"
-import bcrypt from "bcrypt"
-import prisma from "../data-access/db.server"
 import jwt from "jsonwebtoken"
 import { Request, Response } from "express"
 import { validateLogin } from "../services/artist"
-import { create } from "domain"
 import { BadRequestError } from "../errors/BadRequestError"
 import { HTTPRequestError } from "../errors/HTTPRequestError"
-
+const axios = require("axios")
 export const login = async (req: Request, res: Response) => {
-  const { email, password }: IValidateLogin = req.body
-  const artist = await validateLogin({ email, password })
-
-  const token = jwt.sign(
-    { id: artist.id, email: artist.email, name: artist.name },
-    process.env.ACCESS_TOKEN as string,
-    { expiresIn: "2 days" },
-  )
-
-  res
-    .cookie("token", token, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 10,
-      secure: true,
-    })
-    .send({ message: "Login success!", success: true })
-    .status(200)
-
-  console.log(req.cookies)
+  try {
+    const { email, password }: IValidateLogin = req.body
+    const artist = await validateLogin({ email, password })
+  
+    const token = jwt.sign(
+      { id: artist.id, email: artist.email, name: artist.name },
+      process.env.ACCESS_TOKEN as string,
+      { expiresIn: "2 days" },
+    )
+  
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 10,
+        secure: true,
+      })
+      .send({ message: "Login success!", success: true })
+      .status(200)
+  
+    console.log(req.cookies)  
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 export const logout = async (req: Request, res: Response) => {
@@ -46,6 +47,25 @@ export const register = async (req: Request, res: Response) => {
     if (password !== confPassword) {
       throw new BadRequestError("Password does not match!")
     }
+
+    const apiUrl = 'http://localhost:8003/api/artists';
+    const requestData = {
+      artist_name: name,
+      image: name,
+      premium: "f",
+    };
+
+    axios.post(apiUrl, requestData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    })
+      .then(response => {
+        console.log(response.data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
 
     const createdArtist = await createArtist({ email, name, password })
 

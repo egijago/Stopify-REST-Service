@@ -33,20 +33,26 @@ export interface IValidateLogin {
   password: string
 }
 export const validateLogin = async ({ email, password }: IValidateLogin) => {
-  const artist = await prisma.artist.findUnique({
-    where: {
-      email: email,
-    },
-  })
-
-  if (!artist) {
-    throw new NotFoundError("Email does not exist!")
+  try {
+    
+    const artist = await prisma.artist.findUnique({
+      where: {
+        email: email,
+      },
+    })
+  
+    if (!artist) {
+      throw new NotFoundError("Email does not exist!")
+    }
+  
+    const validPassword = await bcrypt.compare(password, artist.password)
+    if (!validPassword) {
+      throw new UnauthorizedError("Password does not match!")
+    }
+  
+    return artist
+  } catch (error) {
+    throw error
+    
   }
-
-  const validPassword = await bcrypt.compare(password, artist.password)
-  if (!validPassword) {
-    throw new UnauthorizedError("Password does not match!")
-  }
-
-  return artist
 }

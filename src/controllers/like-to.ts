@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import prisma from "../data-access/db.server"
 import jwt from "jsonwebtoken"
 import * as LikeToService from "./../services/like-to"
+import { auth } from "../middleware/auth"
 
 
 export const likeTo = async (req: Request, res: Response) => {
@@ -14,21 +15,33 @@ export const likeTo = async (req: Request, res: Response) => {
   if (!idUser || !idMusic || !idAlbum || !idArtist) {
     return res.status(400).send({ error: "Please fill all the fields" })
   }
-  const api_key = req.headers.authorization
-  if (!api_key || api_key !== process.env.REST_API_KEY) {
-    return res.status(400).send({ error: "Unauthorized" })
+  const headers = req.headers
+
+  console.log('authh  ' ,String(req.headers['authorization']))
+  
+  console.log(headers['authorization'] as string)
+  if (!headers['authorization'] || headers['authorization'] !== process.env.REST_API_KEY) {
+    console.log(req.headers.authorization)
+    return res.status(400).send({ error: req.headers })
   }
   try {
-    const like = LikeToService.createLikeTo({
+    const like = await LikeToService.createLikeTo({
       idUser,
       idArtist,
       idMusic,
       idAlbum
     })
     console.log(like)
-    return res.status(200).send({ message: "aman bang" })
+    if(!like) {
+      throw new Error()
+    }
+    console.log(like)
+    return res.status(200).send({ message: "like aman" })
   } catch (error) {
-    return res.status(500).send({ error: "Internal Server Error" })
+    if (!error.statusCode) {
+      return res.status(500).send({ error: "Internal Server Error" })
+    }
+    return res.status(error.statusCode).send({ success:false, message:error.message })
   }
 }
 

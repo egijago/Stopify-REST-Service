@@ -19,6 +19,18 @@ model Artist {
   listenTo  ListenTo[]
   likeTo    LikeTo[]
   banner    Banner[]
+  payment   PaymentInfo?
+}
+
+model PaymentInfo {
+  id            Int    @id @default(autoincrement())
+  idArtist      Int   @unique
+  cardNumber    String
+  cardOwner     String
+  cardExpMonth  Int
+  cardExpYear   Int
+  cardCvc       Int 
+  artist Artist @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model ListenTo {

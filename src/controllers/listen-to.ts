@@ -61,6 +61,9 @@ export const listenTo = async (req: Request, res: Response) => {
       idMusic,
       idAlbum
     })
+    if(!listenTo) {
+      return res.status(400).send({ error: "Bad Request" })
+    }
     console.log(listenTo)
     return res.status(200).send({ message: "aman bang" })
   } catch (error) {

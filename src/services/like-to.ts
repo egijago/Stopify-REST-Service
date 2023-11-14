@@ -1,4 +1,6 @@
+import { Prisma } from "@prisma/client";
 import prisma from "../data-access/db.server"
+import { ConflictError } from "../errors/ConflictError";
 
 interface MusicLike {
     idMusic: number;
@@ -20,10 +22,16 @@ export interface ICreateLikeTo {
     idArtist: number;
 }    
 export const createLikeTo = async (likeTo: ICreateLikeTo) => {
-  const insertLikeTo = prisma.likeTo.create({
-    data: likeTo,  
-  })  
-  return insertLikeTo
+    try {
+        const insertLikeTo = await prisma.likeTo.create({
+            data: likeTo,  
+        })  
+        return insertLikeTo
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            throw new ConflictError("User has already like song")
+        }
+    }
 }  
 
 export const highestLikeByMusic = async (idArtist: number): Promise<MusicLike[]> => {

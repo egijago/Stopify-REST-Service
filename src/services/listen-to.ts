@@ -7,10 +7,14 @@ export interface ICreateListenTo {
     idAlbum: number;
 }
 export const createListenTo = async (listenTo: ICreateListenTo) => {
-  const insertListenTo = prisma.listenTo.create({
-    data: listenTo,
-  })
-  return insertListenTo
+    try {
+      const insertListenTo = await prisma.listenTo.create({
+        data: listenTo,
+      })
+      return insertListenTo
+    } catch (error) {
+      return null
+    }
 }
 
 interface MusicListen {
