@@ -24,7 +24,8 @@ export const createArtist = async (artist: ICreateArtist) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictError("Email has already been registered!")
     }
-  }
+    console.log(error)
+  } 
 
 }
 
