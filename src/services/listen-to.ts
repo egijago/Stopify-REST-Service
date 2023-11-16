@@ -1,71 +1,84 @@
+import { Prisma } from "@prisma/client"
 import prisma from "../data-access/db.server"
 
 export interface ICreateListenTo {
-    idUser: number;
-    idArtist: number;
-    idMusic: number;
-    idAlbum: number;
+  idUser: number
+  idArtist: number
+  idMusic: number
+  idAlbum: number
 }
 export const createListenTo = async (listenTo: ICreateListenTo) => {
-    try {
-      const insertListenTo = await prisma.listenTo.create({
-        data: listenTo,
-      })
-      return insertListenTo
-    } catch (error) {
-      return null
-    }
+  const insertListenTo = await prisma.listenTo.create({
+    data: listenTo,
+  })
+  return insertListenTo
 }
 
-interface MusicListen {
-  idMusic: number;
+export interface MusicListen {
+  idMusic: number
   _count: {
-      listenAt: number;
-  };
+    listenAt: number
+  }
 }
-interface AlbumListen {
-  idAlbum: number;
+export interface AlbumListen {
+  idAlbum: number
   _count: {
-      listenAt: number;
-  };
+    listenAt: number
+  }
 }
-
-export const highestListenByMusic = async (idArtist: number): Promise<MusicListen[]> => {
+export const highestListenByMusic = async (
+  idArtist: number,
+): Promise<MusicListen[]> => {
+  const low: Date = new Date()
+  low.setMonth(low.getMonth() - 12)
   const highestListen = await prisma.listenTo.groupBy({
-      by: ['idMusic'],
-      where: {
-          idArtist: idArtist,
+    by: ["idMusic"],
+    where: {
+      idArtist: idArtist,
+      listenAt: {
+        gt: low
       },
+    },
+    _count: {
+      listenAt: true,
+    },
+    orderBy: {
       _count: {
-          listenAt: true,
+        listenAt: "desc",
       },
-      orderBy: {
-          _count: {
-              listenAt: 'desc',
-          },
-      },
-      take: 5,
-  });
+    },
+    take: 5,
+  })
+  
+  // console.log(JSON.stringify())
+  return highestListen
+}
 
-  return highestListen;
-};
-
-export const highestListenByAlbum = async (idArtist: number): Promise<AlbumListen[]> => {
+export const highestListenByAlbum = async (
+  idArtist: number,
+): Promise<AlbumListen[]> => {
+  const low: Date = new Date()
+  low.setMonth(low.getMonth() - 12)
   const highestListen = await prisma.listenTo.groupBy({
     by: ['idAlbum'],
     where: {
-        idArtist: idArtist,
+      idArtist: idArtist,
+      listenAt: {
+        gt: low
+      }
     },
     _count: {
-        listenAt: true,
+      listenAt: true,
     },
     orderBy: {
-        _count: {
-            listenAt: 'desc',
-        },
+      _count: {
+        listenAt: "desc",
+      },
     },
     take: 5,
-  });
+  })
 
-  return highestListen;
-};
+  console.log(highestListen)
+
+  return highestListen
+}

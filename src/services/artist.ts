@@ -4,6 +4,8 @@ import { Artist, Prisma } from "@prisma/client"
 import { NotFoundError } from "../errors/NotFoundError"
 import { UnauthorizedError } from "../errors/UnauthorizedError"
 import { ConflictError } from "../errors/ConflictError"
+import { httpPostCaller,httpGetCaller } from "../client/HttpCaller"
+
 
 export interface ICreateArtist {
   email: string
@@ -55,5 +57,38 @@ export const validateLogin = async ({ email, password }: IValidateLogin) => {
   } catch (error) {
     throw error
     
+  }
+}
+
+export interface IVCreateArtistPHP{
+  name:String,
+  email:String,
+  image:String,
+  premium:String
+}
+
+export const createArtistPHP = async ({name,email,image,premium}: IVCreateArtistPHP) => {
+    try {
+        const response =await httpPostCaller("http://localhost:8000/api/artists", {
+                name: name,
+                email: email,
+                image: image,
+                premium: premium,
+            },
+            "application/x-www-form-urlencoded"
+        );
+        return response;
+    } catch (error) {
+        console.error('Error in route handler:', error);
+        return error;
+    }
+}
+
+export const getArtistByEmail = async(email:String) => {
+  try{
+    const response = await httpGetCaller("http://localhost:8000/api/artists/"+email)
+    return response;
+  } catch(error){
+    return error
   }
 }

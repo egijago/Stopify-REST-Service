@@ -9,8 +9,23 @@ export interface ICreateBanner {
   idArtist: number
 }
 export const createBanner = async (banner: ICreateBanner) => {
-  const insertedBanner = prisma.banner.create({
+  const insertedBanner = await prisma.banner.create({
     data: banner,
   })
   return insertedBanner
+}
+
+export const getBanner = async () => {
+  const allBanner = await prisma.banner.findMany({
+    select:{
+      id:true,
+      imageUrl:true
+    },
+    where:{
+      endDate:{
+        lte: new Date()
+      }
+    }
+  })
+  return allBanner
 }

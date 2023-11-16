@@ -4,52 +4,72 @@ import jwt from "jsonwebtoken"
 import * as LikeToService from "./../services/like-to"
 import { auth } from "../middleware/auth"
 
-
-export const likeTo = async (req: Request, res: Response) => {
-  const {
-    idUser,
-    idArtist,
-    idMusic,
-    idAlbum
-  }: LikeToService.ICreateLikeTo = req.body
+export const like = async (req: Request, res: Response) => {
+  const { idUser, idArtist, idMusic, idAlbum }: LikeToService.ICreateLikeTo =
+    req.body
   if (!idUser || !idMusic || !idAlbum || !idArtist) {
     return res.status(400).send({ error: "Please fill all the fields" })
   }
-  const headers = req.headers
 
-  console.log('authh  ' ,String(req.headers['authorization']))
-  
-  console.log(headers['authorization'] as string)
-  if (!headers['authorization'] || headers['authorization'] !== process.env.REST_API_KEY) {
-    console.log(req.headers.authorization)
-    return res.status(400).send({ error: req.headers })
-  }
   try {
     const like = await LikeToService.createLikeTo({
       idUser,
       idArtist,
       idMusic,
-      idAlbum
+      idAlbum,
     })
-    console.log(like)
-    if(!like) {
+    if (!like) {
       throw new Error()
     }
-    console.log(like)
-    return res.status(200).send({ message: "like aman" })
+
+    return res.status(200).send({ message: "Liked successfuly", success: true })
   } catch (error) {
     if (!error.statusCode) {
-      return res.status(500).send({ error: "Internal Server Error" })
+      return res
+        .status(500)
+        .send({ success: false, message: "Internal Server Error" })
     }
-    return res.status(error.statusCode).send({ success:false, message:error.message })
+    return res
+      .status(error.statusCode)
+      .send({ success: false, message: error.message })
+  }
+}
+
+export const unlike = async (req: Request, res: Response) => {
+  const { idUser, idArtist, idMusic, idAlbum }: LikeToService.ICreateLikeTo =
+    req.body
+  if (!idUser || !idMusic || !idAlbum || !idArtist) {
+    return res.status(400).send({ error: "Please fill all the fields" })
+  }
+
+  try {
+    const like = await LikeToService.createLikeTo({
+      idUser,
+      idArtist,
+      idMusic,
+      idAlbum,
+    })
+    if (!like) {
+      throw new Error()
+    }
+    return res.status(200).send({ message: "Liked successfuly", success: true })
+  } catch (error) {
+    if (!error.statusCode) {
+      return res
+        .status(500)
+        .send({ success: false, message: "Internal Server Error" })
+    }
+    return res
+      .status(error.statusCode)
+      .send({ success: false, message: error.message })
   }
 }
 
 export const highestLikeByMusic = async (req: Request, res: Response) => {
-  const api_key = req.headers.authorization
-  if (!api_key || api_key !== process.env.REST_API_KEY) {
-    return res.status(400).send({ error: "Unauthorized" })
-  }
+  // const api_key = req.headers.authorization
+  // if (!api_key || api_key !== process.env.REST_API_KEY) {
+  //   return res.status(400).send({ error: "Unauthorized" })
+  // }
   try {
     const decoded = jwt.verify(
       req.cookies["token"],
@@ -60,15 +80,22 @@ export const highestLikeByMusic = async (req: Request, res: Response) => {
     console.log(highestLike)
     return res.status(200).send({ data: highestLike })
   } catch (error) {
-    return res.status(500).send({ error: "Internal Server Error" })
+    if (!error.statusCode) {
+      return res
+        .status(500)
+        .send({ success: false, message: "Internal Server Error" })
+    }
+    return res
+      .status(error.statusCode)
+      .send({ success: false, message: error.message })
   }
 }
 
 export const highestLikeByAlbum = async (req: Request, res: Response) => {
-  const api_key = req.headers.authorization
-  if (!api_key || api_key !== process.env.REST_API_KEY) {
-    return res.status(400).send({ error: "Unauthorized" })
-  }
+  // const api_key = req.headers.authorization
+  // if (!api_key || api_key !== process.env.REST_API_KEY) {
+  //   return res.status(400).send({ error: "Unauthorized" })
+  // }
   try {
     const decoded = jwt.verify(
       req.cookies["token"],
@@ -82,4 +109,3 @@ export const highestLikeByAlbum = async (req: Request, res: Response) => {
     return res.status(500).send({ error: "Internal Server Error" })
   }
 }
-

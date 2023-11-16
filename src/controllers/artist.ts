@@ -1,10 +1,9 @@
-import { IValidateLogin, createArtist } from "./../services/artist"
+import { IValidateLogin, createArtist, createArtistPHP, getArtistByEmail } from "./../services/artist"
 import jwt from "jsonwebtoken"
 import { Request, Response } from "express"
 import { validateLogin } from "../services/artist"
 import { BadRequestError } from "../errors/BadRequestError"
 import { HTTPRequestError } from "../errors/HTTPRequestError"
-const axios = require("axios")
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password }: IValidateLogin = req.body
@@ -39,8 +38,8 @@ export const logout = async (req: Request, res: Response) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, name, password, confPassword } = req.body
-    if (!email || !name || !password || !confPassword) {
+    const { email, name, password, confPassword, image } = req.body
+    if (!email || !name || !password || !confPassword || !image) {
       console.log(email," + ", name, password, confPassword)
       throw new BadRequestError("Please fill all the field!")
     }
@@ -49,28 +48,13 @@ export const register = async (req: Request, res: Response) => {
       throw new BadRequestError("Password does not match!")
     }
 
-    const apiUrl = 'http://localhost:8003/api/artists';
-    const requestData = {
-      artist_name: name,
-      image: name,
-      premium: "f",
-    };
-
-    axios.post(apiUrl, requestData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    })
-      .then(response => {
-        console.log(response.data);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-
     const createdArtist = await createArtist({ email, name, password })
 
-    if (!createdArtist) {
+    const createArtistOnPHP = await createArtistPHP({name:name,email:email,image:image,premium:"t"})
+
+    console.log(createArtistOnPHP)
+
+    if (!createdArtist || !createArtistOnPHP) {
       throw new Error()
     }
 
@@ -88,5 +72,15 @@ export const register = async (req: Request, res: Response) => {
       console.log(error)
       res.status(500).send({ success: false, message: "Internal Server Error" })
     }
+  }
+}
+
+export const getArtist = async (req: Request, res: Response) => {
+  try {
+    const artist = getArtistByEmail(req.params.email)
+    return res.send({success:true, message:"Success", data:artist})
+  } catch (error) {
+    console.log(error)
+    res.status(500).send({ success: false, message: "Internal Server Error" })
   }
 }
