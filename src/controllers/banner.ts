@@ -1,35 +1,41 @@
 import * as BannerService from "./../services/banner"
 import { Request, Response } from "express"
-import jwt, { JwtPayload } from "jsonwebtoken"
-import prisma from "../data-access/db.server"
-import { Banner, Prisma } from "@prisma/client"
 import { auth } from "../middleware/auth"
 import { BadRequestError } from "../errors/BadRequestError"
 import { HTTPRequestError } from "../errors/HTTPRequestError"
+import * as fs from "fs"
+import { JwtPayload } from "jsonwebtoken"
+interface bannerRequest {
+  image: File
+  description: string
+  startDate: Date
+  endDate: Date
+}
 
 export const createBanner = async (req: Request, res: Response) => {
   try {
-    const decoded: JwtPayload = auth(req)
-    const { idArtist } = decoded.id
-    const {
-      imageUrl,
-      description,
-      startDate,
-      endDate,
-    }: BannerService.ICreateBanner = req.body
+    if (!req.body.image) {
+      console.log("req.body.image is missing")
+    }
 
-    if (!imageUrl || !description || !startDate || !endDate) {
+    const { image, description, startDate, endDate }: bannerRequest = req.body
+
+    console.log(req.body)
+    // Check if required fields are missing
+    if (!description || !startDate || !endDate) {
       throw new BadRequestError("Missing required field!")
     }
 
-    const createdBanner = BannerService.createBanner({
-      imageUrl,
+    // Construct the URL for saving the image
+    const url = `public/assets/${description}.png`
+
+    const createdBanner = await BannerService.createBanner({
+      imageUrl: url,
       description,
       startDate,
       endDate,
-      idArtist,
+      idArtist: 1, // You might want to replace this with the actual artist ID
     })
-    console.log(createdBanner)
 
     return res.status(201).json({ message: "Banner created successfully" })
   } catch (error) {

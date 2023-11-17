@@ -2,41 +2,22 @@ import { Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import * as ListenToService from "./../services/listen-to"
 
-export const highestListenByMusic = async (req: Request, res: Response) => {
-  const api_key = req.headers.authorization
-  if (!api_key || api_key !== process.env.REST_API_KEY) {
-    return res.status(400).send({ error: "Unauthorized" })
-  }
+export const getTopMusicByListener = async (req: Request, res: Response) => {
   try {
+    const token = req.cookies.token
+    console.log(token)
     const decoded = jwt.verify(
-      req.cookies["token"],
+      token,
       process.env.ACCESS_TOKEN as string,
     ) as jwt.JwtPayload
     const idArtist = decoded.id
-    const highestListen = ListenToService.highestListenByMusic(idArtist)
-    console.log(highestListen)
-    return res.status(200).send({ data: highestListen })
+    const topMusic = await ListenToService.getTopMusicByListener(idArtist)
+    return res.status(200).send({ data: topMusic, success: true })
   } catch (error) {
-    return res.status(500).send({ error: "Internal Server Error" })
-  }
-}
-
-export const highestListenByAlbum = async (req: Request, res: Response) => {
-  const api_key = req.headers.authorization
-  if (!api_key || api_key !== process.env.REST_API_KEY) {
-    return res.status(400).send({ error: "Unauthorized" })
-  }
-  try {
-    const decoded = jwt.verify(
-      req.cookies["token"],
-      process.env.ACCESS_TOKEN as string,
-    ) as jwt.JwtPayload
-    const idArtist = decoded.id
-    const highestListen = ListenToService.highestListenByAlbum(idArtist)
-    console.log(highestListen)
-    return res.status(200).send({ data: highestListen })
-  } catch (error) {
-    return res.status(500).send({ error: "Internal Server Error" })
+    console.error(error)
+    return res
+      .status(500)
+      .send({ success: false, message: "Internal Server Error" })
   }
 }
 
@@ -45,7 +26,8 @@ export const listenTo = async (req: Request, res: Response) => {
     idUser,
     idArtist,
     idMusic,
-    idAlbum
+    idAlbum,
+    idGenre,
   }: ListenToService.ICreateListenTo = req.body
   if (!idUser || !idArtist || !idMusic || !idAlbum) {
     return res.status(400).send({ error: "Please fill all the fields" })
@@ -55,18 +37,44 @@ export const listenTo = async (req: Request, res: Response) => {
     return res.status(400).send({ error: "Unauthorized" })
   }
   try {
-    const listenTo = ListenToService.createListenTo({
+    const listenTo = await ListenToService.createListenTo({
       idUser,
       idArtist,
       idMusic,
-      idAlbum
+      idAlbum,
+      idGenre,
     })
-    if(!listenTo) {
+    if (!listenTo) {
       return res.status(400).send({ error: "Bad Request" })
     }
     console.log(listenTo)
-    return res.status(200).send({ message: "aman bang" })
+    return res
+      .status(200)
+      .send({ success: true, message: "Music liked successfully" })
   } catch (error) {
-    return res.status(500).send({ error: "Internal Server Error" })
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal Server Error" })
+  }
+}
+
+export const getTopGenreByListener = async (req: Request, res: Response) => {
+  try {
+    const decoded = jwt.verify(
+      req.cookies["token"],
+      process.env.ACCESS_TOKEN as string,
+    ) as jwt.JwtPayload
+    const idArtist = decoded.id
+    const topMusic = await ListenToService.getTopMusicByListener(idArtist)
+    return res.status(200).send({ data: topMusic, success: true })
+  } catch (error) {
+    if (!error.statusCode) {
+      return res
+        .status(500)
+        .send({ success: false, message: "Internal Server Error" })
+    }
+    return res
+      .status(error.statusCode)
+      .send({ success: false, message: error.message })
   }
 }

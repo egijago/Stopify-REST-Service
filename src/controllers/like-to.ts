@@ -1,22 +1,25 @@
 import { Request, Response } from "express"
-import prisma from "../data-access/db.server"
 import jwt from "jsonwebtoken"
 import * as LikeToService from "./../services/like-to"
-import { auth } from "../middleware/auth"
 
 export const like = async (req: Request, res: Response) => {
-  const { idUser, idArtist, idMusic, idAlbum }: LikeToService.ICreateLikeTo =
-    req.body
-  if (!idUser || !idMusic || !idAlbum || !idArtist) {
+  const {
+    idUser,
+    idArtist,
+    idMusic,
+    idAlbum,
+    idGenre,
+  }: LikeToService.ICreateLikeTo = req.body
+  if (!idUser || !idMusic || !idAlbum || !idArtist || !idGenre) {
     return res.status(400).send({ error: "Please fill all the fields" })
   }
-
   try {
     const like = await LikeToService.createLikeTo({
       idUser,
       idArtist,
       idMusic,
       idAlbum,
+      idGenre,
     })
     if (!like) {
       throw new Error()
@@ -43,11 +46,9 @@ export const unlike = async (req: Request, res: Response) => {
   }
 
   try {
-    const like = await LikeToService.createLikeTo({
+    const like = await LikeToService.deleteLikeTo({
       idUser,
-      idArtist,
       idMusic,
-      idAlbum,
     })
     if (!like) {
       throw new Error()
@@ -65,20 +66,15 @@ export const unlike = async (req: Request, res: Response) => {
   }
 }
 
-export const highestLikeByMusic = async (req: Request, res: Response) => {
-  // const api_key = req.headers.authorization
-  // if (!api_key || api_key !== process.env.REST_API_KEY) {
-  //   return res.status(400).send({ error: "Unauthorized" })
-  // }
+export const getTopMusicByLiked = async (req: Request, res: Response) => {
   try {
     const decoded = jwt.verify(
       req.cookies["token"],
       process.env.ACCESS_TOKEN as string,
     ) as jwt.JwtPayload
     const idArtist = decoded.id
-    const highestLike = await LikeToService.highestLikeByMusic(idArtist)
-    console.log(highestLike)
-    return res.status(200).send({ data: highestLike })
+    const topMusic = await LikeToService.getTopMusicByLiked(idArtist)
+    return res.status(200).send({ data: topMusic, success: true })
   } catch (error) {
     if (!error.statusCode) {
       return res
@@ -91,21 +87,24 @@ export const highestLikeByMusic = async (req: Request, res: Response) => {
   }
 }
 
-export const highestLikeByAlbum = async (req: Request, res: Response) => {
-  // const api_key = req.headers.authorization
-  // if (!api_key || api_key !== process.env.REST_API_KEY) {
-  //   return res.status(400).send({ error: "Unauthorized" })
-  // }
+export const getTopAlbumByLiked = async (req: Request, res: Response) => {
   try {
     const decoded = jwt.verify(
       req.cookies["token"],
       process.env.ACCESS_TOKEN as string,
     ) as jwt.JwtPayload
     const idArtist = decoded.id
-    const highestListen = LikeToService.highestLikeByAlbum(idArtist)
+    const highestListen = LikeToService.getTopAlbumByLiked(idArtist)
     console.log(highestListen)
     return res.status(200).send({ data: highestListen })
   } catch (error) {
-    return res.status(500).send({ error: "Internal Server Error" })
+    if (!error.statusCode) {
+      return res
+        .status(500)
+        .send({ success: false, message: "Internal Server Error" })
+    }
+    return res
+      .status(error.statusCode)
+      .send({ success: false, message: error.message })
   }
 }

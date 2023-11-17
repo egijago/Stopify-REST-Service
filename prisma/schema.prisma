@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -13,9 +14,9 @@ model Artist {
   name     String
   password String
 
-  active    Boolean?   @default(true)
-  createdAt DateTime?  @default(now())
-  updatedAt DateTime?  @updatedAt
+  active    Boolean?     @default(true)
+  createdAt DateTime?    @default(now())
+  updatedAt DateTime?    @updatedAt
   listenTo  ListenTo[]
   likeTo    LikeTo[]
   banner    Banner[]
@@ -23,14 +24,14 @@ model Artist {
 }
 
 model PaymentInfo {
-  id            Int    @id @default(autoincrement())
-  idArtist      Int   @unique
-  cardNumber    String
-  cardOwner     String
-  cardExpMonth  Int
-  cardExpYear   Int
-  cardCvc       Int 
-  artist Artist @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id           Int    @id @default(autoincrement())
+  idArtist     Int    @unique
+  cardNumber   String
+  cardOwner    String
+  cardExpMonth Int
+  cardExpYear  Int
+  cardCvc      Int
+  artist       Artist @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model ListenTo {
@@ -39,6 +40,7 @@ model ListenTo {
   idArtist Int
   idMusic  Int
   idAlbum  Int
+  idGenre  Int
 
   artist   Artist    @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
   listenAt DateTime? @default(now())
@@ -50,6 +52,7 @@ model LikeTo {
   idMusic  Int
   idAlbum  Int
   idArtist Int
+  idGenre  Int
 
   artist Artist @relation(fields: [idArtist], references: [id], onDelete: Cascade, onUpdate: Cascade)
 

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client"
 import prisma from "../data-access/db.server"
 import { ConflictError } from "../errors/ConflictError"
 import { NotFoundError } from "../errors/NotFoundError"
+import { getMusicByMusicId } from "../client/PHPClient"
 
 export interface MusicLike {
   idMusic: number
@@ -21,6 +22,7 @@ export interface ICreateLikeTo {
   idMusic: number
   idAlbum: number
   idArtist: number
+  idGenre: number
 }
 export const createLikeTo = async (likeTo: ICreateLikeTo) => {
   try {
@@ -44,7 +46,7 @@ export interface IDeleteLikeTo {
 }
 export const deleteLikeTo = async ({ idUser, idMusic }: IDeleteLikeTo) => {
   try {
-    const insertLikeTo = await prisma.likeTo.delete({
+    const deleteLikeTo = await prisma.likeTo.delete({
       where: {
         idUser_idMusic: {
           idUser,
@@ -52,7 +54,7 @@ export const deleteLikeTo = async ({ idUser, idMusic }: IDeleteLikeTo) => {
         },
       },
     })
-    return insertLikeTo
+    return deleteLikeTo
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -63,49 +65,76 @@ export const deleteLikeTo = async ({ idUser, idMusic }: IDeleteLikeTo) => {
   }
 }
 
-export const highestLikeByMusic = async (
-  idArtist: number,
-): Promise<MusicLike[]> => {
-  const highestLikes = await prisma.likeTo.groupBy({
-    by: ["idMusic"],
-    where: {
-      idArtist: idArtist,
-    },
-    _count: {
-      idUser: true,
-    },
-    orderBy: {
-      _count: {
-        idUser: "desc",
+export async function getTopMusicByLiked(idArtist: number) {
+  try {
+    const oneYearAgo: Date = new Date()
+    oneYearAgo.setMonth(oneYearAgo.getMonth() - 12)
+    const result = await prisma.listenTo.groupBy({
+      by: ["idMusic"],
+      where: {
+        idArtist,
+        listenAt: {
+          gte: oneYearAgo,
+        },
       },
-    },
-    take: 5,
-  })
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: "desc",
+        },
+      },
+      take: 10,
+    })
 
-  // bind with php call
-
-  return highestLikes
+    const completeResult = []
+    for (let i = 0; i < result.length; i++) {
+      const { success, data } = await getMusicByMusicId(result[i].idMusic)
+      if (!success) {
+        throw new Error("Error while gathering information")
+      }
+      completeResult.push({
+        id: result[i].idMusic,
+        title: data.title,
+        count: result[i]._count,
+      })
+    }
+    return completeResult
+  } catch (error) {
+    console.error("Error:", error)
+  } finally {
+    await prisma.$disconnect()
+  }
 }
 
-export const highestLikeByAlbum = async (
-  idArtist: number,
-): Promise<AlbumLike[]> => {
-  const highestLikes = await prisma.likeTo.groupBy({
-    by: ["idAlbum"],
-    where: {
-      idArtist: idArtist,
-    },
-    _count: {
-      idUser: true,
-    },
-    orderBy: {
-      _count: {
-        idUser: "desc",
+export async function getTopAlbumByLiked(idArtist: number) {
+  try {
+    const oneYearAgo: Date = new Date()
+    oneYearAgo.setMonth(oneYearAgo.getMonth() - 12)
+    const result = await prisma.listenTo.groupBy({
+      by: ["idAlbum"],
+      where: {
+        idArtist,
+        listenAt: {
+          gte: oneYearAgo,
+        },
       },
-    },
-    take: 5,
-  })
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _count: {
+          id: "desc",
+        },
+      },
+      take: 10,
+    })
 
-  //bind with php call
-  return highestLikes
+    return result
+  } catch (error) {
+    console.error("Error:", error)
+  } finally {
+    await prisma.$disconnect()
+  }
 }

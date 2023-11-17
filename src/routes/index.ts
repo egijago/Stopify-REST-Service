@@ -1,54 +1,57 @@
+import { getTopMusicByLiked } from './../controllers/like-to';
 import express from "express"
-import { login, logout, register, getArtist } from "../controllers/artist"
-import { like } from "../controllers/like-to"
+import { login, logout, register } from "../controllers/artist"
+import { like, unlike } from "../controllers/like-to"
 import { listenTo } from "../controllers/listen-to"
-import { createBanner } from "../controllers/banner"
-import { httpGetCaller } from "../client/HttpCaller"
-import { seedPrisma } from "./seed"
-import { confirmSubscription, getAllPendingSubscriberByIdArtist } from "../client/SOAPClient"
+import {
+  getTopGenreByListener,
+  getTopMusicByListener,
+} from "../controllers/listen-to"
+import { reset, seedPrisma } from "./seed"
+import { getTopAlbumByLiked } from "../controllers/like-to"
+import { createBanner } from "../services/banner"
+import multer from "multer";
+import { getMusicByMusicId } from "../client/PHPClient"
+
 const router = express.Router()
+
+// router.get("/test", async (req, res) => {
+//   console.log(await getTopMusicByLiked(1));
+// })
 
 router.post("/register", register)
 router.post("/login", login)
 router.get("/logout", logout)
 
-router.post("/like", like)
-// router.delete("/like", unlike)
-router.post("/listen", listenTo)
+router.post("/like-tos", like)
+router.delete("/like-tos", unlike)
+router.get("/like-tos/top/music", getTopMusicByLiked)
+router.get("/like-tos/top/album", getTopAlbumByLiked)
 
-router.post("/banner", createBanner)
-
-router.get("/artist/{email}", getArtist)
-
-router.get("/foobar",  (req, res) => {
-  res.send( getAllPendingSubscriberByIdArtist(1));
-})
-
-router.get("/test", async (req, res) => {
-  try {
-    const ress = await httpGetCaller("https://w76kp3hq-8001.asse.devtunnels.ms/api/albums");
-    console.log(ress);
-    return res.status(200).send({ data: ress });
-  } catch (error) {
-    console.error('Error in route handler:', error);
-    return res.status(500).send({ error: 'Internal Server Error' });
-  }
-})
+router.post("/listen-tos", listenTo)
+router.get("/listen-tos/top/music", getTopMusicByListener)
+router.get("/listen-tos/top/genre", getTopGenreByListener)
 
 router.get("/seed", async (req, res) => {
-  try {
-      const ress = seedPrisma();
-      return res.status(200).send({ data: ress });
-    } catch (error) {
-      console.error('Error in route handler:', error);
-      return res.status(500).send({ error: 'Internal Server Error' });
-    }
+  seedPrisma()
+})
+
+router.get("/reset", async (req, res) => {
+  reset()
+})
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, 'src/images/');
+  },
+  filename: function (req, file, cb) {
+      cb(null, `${Date.now()}_${file.originalname}`);
+  }
 });
 
-// router.get("/music/like", highestLikeByAlbum)
-// router.get("/music/listen", highestListenByMusic)
+const imageUpload = multer({ storage });
 
-// router.get("/album/like", highestLikeByAlbum)
-// router.get("/album/listen", highestListenByAlbum)
+router.post("/banner", imageUpload.single('file'), createBanner);
+
 
 export default router
